@@ -38,24 +38,17 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-		/* El objeto http se va pasando por cada uno de los filtros y lo van modificando
-		 * Aqui se definen las condiciones de nuestros filtros que van en el DelegatingFilterProxy
+		/*	El objeto http se va pasando por cada uno de los filtros y lo van modificando
+		 	Aqui se definen las condiciones de nuestros filtros que van en el DelegatingFilterProxy
+		 	OJO:
+			En este caso, quitamos los filtros authoriseHttpRequest del DelegatedFilterSecurity 
+			para configurar los accesos desde los endpoint gracias a la anotacion @EnableMethodSecurity
+		
 		 */
 		return httpSecurity
 				.csrf(csrf -> csrf.disable())
 				.httpBasic(Customizer.withDefaults()) //Si no lo pongo no funciona Basic Auth
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(http -> {
-					//Configuracion de endpoints publicos con acceso a todo mundo sin filtros
-					http.requestMatchers(HttpMethod.GET, "/auth/hello").permitAll();
-					
-					//Configuracion de endpoints privados, con acceso basados en los filtros
-					http.requestMatchers(HttpMethod.GET, "/auth/hello-secured").hasAuthority("CREATE");
-					
-					//Configuracion el resto de los endpoints - NO DEFINIDOS AUN
-					//http.anyRequest().denyAll();
-					http.anyRequest().authenticated();
-				})
 				.build();
 	}
 
