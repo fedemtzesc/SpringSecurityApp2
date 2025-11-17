@@ -41,8 +41,12 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-		/* El objeto http se va pasando por cada uno de los filtros y lo van modificando
-		 * Aqui se definen las condiciones de nuestros filtros que van en el DelegatingFilterProxy
+		/*	El objeto http se va pasando por cada uno de los filtros y lo van modificando
+		 	Aqui se definen las condiciones de nuestros filtros que van en el DelegatingFilterProxy
+		 	OJO:
+			En este caso, quitamos los filtros authoriseHttpRequest del DelegatedFilterSecurity 
+			para configurar los accesos desde los endpoint gracias a la anotacion @EnableMethodSecurity
+		
 		 */
 		return httpSecurity
 				.csrf(csrf -> csrf.disable())
