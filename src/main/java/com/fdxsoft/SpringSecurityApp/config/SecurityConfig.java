@@ -19,10 +19,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import com.fdxsoft.SpringSecurityApp.service.UserDetailsServiceImpl;
 
 /**
  * En esta clase se define toda la arquitectura de Spring Security Los
@@ -51,6 +54,14 @@ public class SecurityConfig {
 					
 					//Configuracion de endpoints privados, con acceso basados en los filtros
 					http.requestMatchers(HttpMethod.GET, "/auth/hello-secured").hasAuthority("CREATE");
+					http.requestMatchers(HttpMethod.GET, "/auth/hello-secured2").hasAuthority("REFACTOR");
+					
+					//Configuracion de endpoints de los Verbos HTTP
+					http.requestMatchers(HttpMethod.GET, "/auth/get").hasAuthority("READ");
+					http.requestMatchers(HttpMethod.POST, "/auth/post").hasAuthority("CREATE");
+					http.requestMatchers(HttpMethod.PUT, "/auth/put").hasAuthority("UPDATE");
+					http.requestMatchers(HttpMethod.DELETE, "/auth/delete").hasAuthority("DELETE");
+					http.requestMatchers(HttpMethod.PATCH, "/auth/patch").hasAuthority("REFACTOR");
 					
 					//Configuracion el resto de los endpoints - NO DEFINIDOS AUN
 					//http.anyRequest().denyAll();
@@ -65,48 +76,33 @@ public class SecurityConfig {
 		return authenticationConfiguration.getAuthenticationManager();
 	}
 
+	/**
+	 * Para que ahora vaya a la BD a atraer la BD eliminamos el metodo userDetailsService()
+	 * y le inyectamos nuestra nueva clase UserDetailsServiceImpl para que obtenga ahora si
+	 * de la BD la informacion del usario.
+	 * 
+	 * @param userDetailsService
+	 * @return
+	 */
 	@Bean
-	public AuthenticationProvider authenticationProvider() {
+	public AuthenticationProvider authenticationProvider(UserDetailsServiceImpl userDetailsService) {
 		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-		provider.setUserDetailsService(userDetailsService());
+		provider.setUserDetailsService(userDetailsService);
 		provider.setPasswordEncoder(passwordEncoder());
 
 		return provider;
 	}
 
-	/*** Se encarga de conectarse a la BD para traer el usuario
-	 * Pero en este caso, vamos a cargar los usuarios en memoria
-	 * @return
-	 */
-	@Bean
-	public UserDetailsService userDetailsService() {
-		List<UserDetails> userDetailsList = new ArrayList<>();
-		//Estamos creando manualmente los usuarios, simulando que los 
-		//fue a traer a la BD.
-		userDetailsList.add(User.withUsername("federico")
-				.password("AhMesAmies2506")
-				.roles("ADMIN")
-				.authorities("READ","CREATE")
-				.build());
-		
-		userDetailsList.add(User.withUsername("fedemtzesc")
-				.password("calibre3006")
-				.roles("USER")
-				.authorities("READ", "CREATE")
-				.build());
-		//		
-		return new InMemoryUserDetailsManager(userDetailsList);
-	}
-
+	
 	/**
 	 * Se encarga de validar el password del usuario 
 	 * @return
 	 */
 	@Bean
 	public PasswordEncoder passwordEncoder() {
-		// return new BCryptPasswordEncoder();
+		 return new BCryptPasswordEncoder();
 		// Esta instancia puede validar el password sin tener que encriptarlo
-		return NoOpPasswordEncoder.getInstance();
+		//return NoOpPasswordEncoder.getInstance();
 	}
 
 }
